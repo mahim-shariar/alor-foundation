@@ -131,17 +131,6 @@ const Footer = () => (
                 zm.arif.eee@gmail.com
               </a>
             </li>
-            <li className="flex items-center gap-2">
-              <FiGlobe className="text-emerald-500" />
-              <a
-                href="https://trilance.tech"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-emerald-700 transition"
-              >
-                trilance.tech
-              </a>
-            </li>
           </ul>
           {/* Socials */}
           <div className="flex gap-4 mt-6">
@@ -185,10 +174,19 @@ const Footer = () => (
       <span className="text-gray-500 text-sm">
         © {new Date().getFullYear()} Trilance. All rights reserved.
       </span>
-      <span className="text-sm text-gray-400">
-        Crafted with{" "}
-        <span className="text-emerald-500 font-bold">Alor Foundation</span> ✦
-        Powered by Trilance
+      <span className="text-sm flex items-center gap-1 text-gray-500">
+        <span className="text-emerald-500 text-lg animate-pulse">✦</span>
+        This website is built by
+        <a
+          href="https://trilance.tech"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-500 ml-1 transition-all duration-200 hover:underline hover:drop-shadow-lg"
+          style={{ textShadow: "0 2px 8px #10b98144" }}
+        >
+          Trilance
+        </a>
+        <span className="text-emerald-500 text-lg animate-pulse">✦</span>
       </span>
     </div>
   </footer>

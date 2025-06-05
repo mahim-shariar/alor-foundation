@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import React from "react";
 import { FiArrowRight, FiHeart, FiUserPlus, FiMail } from "react-icons/fi";
 
-// Replace with your actual logos and names
 const partnerLogos = [
   {
     id: 1,
@@ -34,14 +33,13 @@ const partnerLogos = [
     name: "Plan International",
     logo: "https://upload.wikimedia.org/wikipedia/en/thumb/a/ad/Plan_International_Logo.svg/250px-Plan_International_Logo.svg.png",
   },
-  // Add more if you have!
 ];
 
 const Marquee = ({ children }) => (
-  <div className="overflow-hidden w-full relative">
+  <div className="overflow-hidden w-full relative my-4">
     <div className="marquee group hover:[animation-play-state:paused] flex">
       {children}
-      {children /* Duplicate for seamless loop */}
+      {children}
     </div>
     <style jsx>{`
       .marquee {
@@ -59,64 +57,65 @@ const Marquee = ({ children }) => (
   </div>
 );
 
-const PartnerSection = () => (
-  <section className="relative overflow-hidden bg-gradient-to-br from-teal-50 to-emerald-50 py-20 px-6 sm:px-12 lg:px-24">
-    {/* Floating background particles */}
-    <div className="absolute inset-0 overflow-hidden z-0 pointer-events-none">
-      {[...Array(14)].map((_, i) => (
+const bgBlobs = Array.from({ length: 14 });
+const bgColors = [
+  ["#5eead4", "#0d9488"], // teal
+  ["#f59e0b", "#f97316"], // amber
+  ["#f472b6", "#db2777"], // pink
+  ["#60a5fa", "#3b82f6"], // blue
+];
+
+const AnimatedBlobs = ({ count = 12 }) => (
+  <>
+    {Array.from({ length: count }).map((_, i) => {
+      const colorSet = bgColors[i % bgColors.length];
+      const size = Math.random() * 120 + 80;
+      return (
         <motion.div
           key={i}
           className="absolute rounded-full opacity-10"
           style={{
-            background: `linear-gradient(45deg, 
-              ${
-                i % 4 === 0
-                  ? "#5eead4"
-                  : i % 4 === 1
-                  ? "#f59e0b"
-                  : i % 4 === 2
-                  ? "#f472b6"
-                  : "#60a5fa"
-              }, 
-              ${
-                i % 4 === 0
-                  ? "#0d9488"
-                  : i % 4 === 1
-                  ? "#f97316"
-                  : i % 4 === 2
-                  ? "#db2777"
-                  : "#3b82f6"
-              })`,
-            width: `${Math.random() * 120 + 80}px`,
-            height: `${Math.random() * 120 + 80}px`,
+            background: `linear-gradient(45deg, ${colorSet[0]}, ${colorSet[1]})`,
+            width: `${size}px`,
+            height: `${size}px`,
             top: `${Math.random() * 100}%`,
             left: `${Math.random() * 100}%`,
             filter: "blur(32px)",
           }}
           animate={{
-            x: [0, (Math.random() - 0.5) * 60],
-            y: [0, (Math.random() - 0.5) * 60],
-            opacity: [0.1, 0.17, 0.1],
+            x: [0, (Math.random() - 0.5) * 70],
+            y: [0, (Math.random() - 0.5) * 70],
+            opacity: [0.09, 0.14, 0.09],
           }}
           transition={{
-            duration: Math.random() * 18 + 10,
+            duration: Math.random() * 20 + 12,
             repeat: Infinity,
             repeatType: "reverse",
           }}
         />
-      ))}
+      );
+    })}
+  </>
+);
+
+const PartnerSection = () => (
+  <section className="relative overflow-hidden bg-gradient-to-br from-teal-50 to-emerald-50 py-24 px-4 sm:px-12">
+    {/* Animated Background */}
+    <div className="absolute inset-0 pointer-events-none z-0">
+      <AnimatedBlobs count={14} />
     </div>
 
-    <div className="relative z-10 max-w-7xl mx-auto">
+    {/* Content */}
+    <div className="relative z-10 max-w-7xl mx-auto flex flex-col gap-16">
       {/* Headline */}
       <motion.div
-        className="mb-10 text-center"
-        initial={{ opacity: 0, y: 20 }}
+        className="text-center"
+        initial={{ opacity: 0, y: 22 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3">
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-600">
             Trusted by Our Partners
           </span>
@@ -127,132 +126,79 @@ const PartnerSection = () => (
       </motion.div>
 
       {/* Marquee */}
-      <Marquee>
-        {partnerLogos.map((logo, idx) => (
-          <div
-            key={logo.id + "-" + idx}
-            className="mx-8 flex items-center justify-center min-w-[180px] h-24 sm:h-28"
-          >
-            <div className="bg-white/70 backdrop-blur-md border border-teal-100 rounded-xl shadow flex items-center justify-center h-20 px-8 transition hover:scale-105 hover:shadow-xl">
-              <img
-                src={logo.logo}
-                alt={logo.name}
-                className="h-12 sm:h-14 object-contain grayscale hover:grayscale-0 transition"
-                title={logo.name}
-              />
+      <div className="relative z-10">
+        <Marquee>
+          {partnerLogos.map((logo) => (
+            <div
+              key={logo.id}
+              className="mx-7 flex items-center justify-center min-w-[170px] h-24 sm:h-28"
+            >
+              <div className="bg-white/80 backdrop-blur-lg border border-teal-100 rounded-xl shadow-md flex items-center justify-center h-20 px-8 transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+                <img
+                  src={logo.logo}
+                  alt={`${logo.name} logo`}
+                  className="h-12 sm:h-14 object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                  title={logo.name}
+                />
+              </div>
             </div>
-          </div>
-        ))}
-      </Marquee>
-    </div>
+          ))}
+        </Marquee>
+      </div>
 
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-      {[...Array(12)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full opacity-10"
-          style={{
-            background: `linear-gradient(45deg, 
-              ${
-                i % 4 === 0
-                  ? "#5eead4"
-                  : i % 4 === 1
-                  ? "#f59e0b"
-                  : i % 4 === 2
-                  ? "#f472b6"
-                  : "#60a5fa"
-              }, 
-              ${
-                i % 4 === 0
-                  ? "#0d9488"
-                  : i % 4 === 1
-                  ? "#f97316"
-                  : i % 4 === 2
-                  ? "#db2777"
-                  : "#3b82f6"
-              })`,
-            width: `${Math.random() * 140 + 80}px`,
-            height: `${Math.random() * 140 + 80}px`,
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            filter: "blur(36px)",
-          }}
-          animate={{
-            x: [0, (Math.random() - 0.5) * 50],
-            y: [0, (Math.random() - 0.5) * 60],
-            opacity: [0.1, 0.17, 0.1],
-          }}
-          transition={{
-            duration: Math.random() * 18 + 10,
-            repeat: Infinity,
-            repeatType: "reverse",
-          }}
-        />
-      ))}
-    </div>
-
-    <div className="relative z-10 max-w-3xl mx-auto text-center">
-      {/* Headline */}
-      <motion.h2
-        className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-      >
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-600">
-          Ready to Make a Difference?
-        </span>
-      </motion.h2>
-      <motion.p
-        className="text-lg text-gray-700 max-w-2xl mx-auto mb-10"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.7 }}
-        viewport={{ once: true }}
-      >
-        Whether you want to volunteer, donate, or collaborate — your step
-        changes lives.
-      </motion.p>
-
-      {/* Glassy CTA Card */}
+      {/* CTA Section */}
       <motion.div
-        className="mx-auto bg-white/80 border border-emerald-100 rounded-2xl shadow-2xl p-8 sm:p-12 backdrop-blur flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10"
-        initial={{ opacity: 0, scale: 0.97, y: 30 }}
-        whileInView={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.8 }}
+        className="max-w-3xl mx-auto flex flex-col gap-8 items-center"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.1 }}
         viewport={{ once: true }}
       >
-        <motion.a
-          href="#volunteer"
-          className="flex items-center gap-3 px-7 py-4 rounded-xl font-semibold bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg hover:shadow-xl transition-all group relative overflow-hidden"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-600">
+          Ready to Make a Difference?
+        </h2>
+        <p className="text-lg text-gray-700 max-w-xl text-center mb-2">
+          Whether you want to volunteer, donate, or collaborate — your step
+          changes lives.
+        </p>
+        <motion.div
+          className="w-full flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 bg-white/80 border border-emerald-100 rounded-2xl shadow-xl px-8 py-8 sm:py-10 backdrop-blur"
+          initial={{ opacity: 0, scale: 0.97, y: 30 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.25, duration: 0.9 }}
+          viewport={{ once: true }}
         >
-          <FiUserPlus className="text-xl" />
-          Volunteer With Us
-          <FiArrowRight className="ml-1 transition-transform group-hover:translate-x-1" />
-        </motion.a>
-        <motion.a
-          href="#donate"
-          className="flex items-center gap-3 px-7 py-4 rounded-xl font-semibold bg-white/90 border-2 border-teal-500 text-teal-700 hover:bg-teal-50 shadow hover:shadow-xl transition-all group relative overflow-hidden"
-          whileHover={{ scale: 1.05, borderColor: "#10b981" }}
-          whileTap={{ scale: 0.97 }}
-        >
-          <FiHeart className="text-xl text-pink-500" />
-          Make a Donation
-          <FiArrowRight className="ml-1 transition-transform group-hover:translate-x-1" />
-        </motion.a>
-        <motion.a
-          href="#contact"
-          className="flex items-center gap-3 px-7 py-4 rounded-xl font-semibold bg-white/90 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50 shadow hover:shadow-xl transition-all group relative overflow-hidden"
-          whileHover={{ scale: 1.05, borderColor: "#059669" }}
-          whileTap={{ scale: 0.97 }}
-        >
-          <FiMail className="text-xl text-emerald-500" />
-          Contact Our Team
-          <FiArrowRight className="ml-1 transition-transform group-hover:translate-x-1" />
-        </motion.a>
+          <motion.a
+            href="#volunteer"
+            className="flex items-center gap-3 px-7 py-4 rounded-xl font-semibold bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg hover:shadow-xl transition-all group relative overflow-hidden"
+            whileHover={{ scale: 1.07 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <FiUserPlus className="text-xl" />
+            Volunteer With Us
+            <FiArrowRight className="ml-1 transition-transform group-hover:translate-x-1" />
+          </motion.a>
+          <motion.a
+            href="#donate"
+            className="flex items-center gap-3 px-7 py-4 rounded-xl font-semibold bg-white/90 border-2 border-teal-500 text-teal-700 hover:bg-teal-50 shadow hover:shadow-xl transition-all group relative overflow-hidden"
+            whileHover={{ scale: 1.07, borderColor: "#10b981" }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <FiHeart className="text-xl text-pink-500" />
+            Make a Donation
+            <FiArrowRight className="ml-1 transition-transform group-hover:translate-x-1" />
+          </motion.a>
+          <motion.a
+            href="#contact"
+            className="flex items-center gap-3 px-7 py-4 rounded-xl font-semibold bg-white/90 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50 shadow hover:shadow-xl transition-all group relative overflow-hidden"
+            whileHover={{ scale: 1.07, borderColor: "#059669" }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <FiMail className="text-xl text-emerald-500" />
+            Contact Our Team
+            <FiArrowRight className="ml-1 transition-transform group-hover:translate-x-1" />
+          </motion.a>
+        </motion.div>
       </motion.div>
     </div>
   </section>
