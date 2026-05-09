@@ -1,314 +1,200 @@
 import { motion } from "framer-motion";
-import { FiArrowRight, FiLinkedin, FiTwitter, FiGithub } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiArrowRight } from "react-icons/fi";
+import { Link } from "react-router-dom";
+import * as api from "../../services/api.js";
 
-const TeamSection = () => {
-  const teamMembers = [
-    {
-      id: 1,
-      name: "Dr. Ayesha Rahman",
-      role: "Founder & CEO",
-      quote: "Empowering communities through sustainable change.",
-      story:
-        "Former public health specialist turned social entrepreneur with 15+ years experience in rural development.",
-      photo:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop",
-      color: "from-teal-400 to-emerald-500",
-    },
-    {
-      id: 2,
-      name: "Rahim Khan",
-      role: "Field Operations Director",
-      quote: "Every village deserves access to clean water.",
-      story:
-        "Led water sanitation projects reaching 50,000+ people across Bangladesh.",
-      photo:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop",
-      color: "from-amber-400 to-orange-500",
-    },
-    {
-      id: 3,
-      name: "Priya Chakraborty",
-      role: "Education Program Lead",
-      quote: "Education is the most powerful equalizer.",
-      story:
-        "Developed digital learning programs adopted by 200+ rural schools.",
-      photo:
-        "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=500&auto=format&fit=crop",
-      color: "from-rose-400 to-pink-500",
-    },
-    {
-      id: 4,
-      name: "Jamal Hossain",
-      role: "Tech Volunteer",
-      quote: "Using tech to bridge the urban-rural divide.",
-      story:
-        "Software engineer building solutions for rural healthcare access.",
-      photo:
-        "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=500&auto=format&fit=crop",
-      color: "from-blue-400 to-indigo-500",
-    },
-  ];
+const FALLBACK_MEMBERS = [
+  { id: 1, name: "Dr. Ayesha Rahman", role: "Founder & CEO", story: "Former public health specialist turned social entrepreneur with 15+ years in rural development across Bangladesh.", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&auto=format&fit=crop" },
+  { id: 2, name: "Rahim Khan", role: "Field Operations Director", story: "Led water sanitation projects reaching 50,000+ people across 117 villages in northern Bangladesh.", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop" },
+  { id: 3, name: "Priya Chakraborty", role: "Education Program Lead", story: "Developed digital learning programs adopted by 200+ rural schools, educating over 12,000 children.", photo: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&auto=format&fit=crop" },
+  { id: 4, name: "Jamal Hossain", role: "Tech & Innovation Lead", story: "Software engineer building open-source solutions bridging digital access gaps in rural healthcare.", photo: "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=600&auto=format&fit=crop" },
+];
+
+const cardV    = { rest: {}, hover: {} };
+const photoV   = {
+  rest:  { scale: 1,    transition: { duration: 0.6, ease: "easeOut" } },
+  hover: { scale: 1.07, transition: { duration: 0.6, ease: "easeOut" } },
+};
+const overlayV = {
+  rest:  { opacity: 0.55, transition: { duration: 0.4 } },
+  hover: { opacity: 0.75, transition: { duration: 0.4 } },
+};
+const panelV   = {
+  rest:  { height: "5.5rem",  transition: { type: "spring", stiffness: 220, damping: 30 } },
+  hover: { height: "13.5rem", transition: { type: "spring", stiffness: 220, damping: 30 } },
+};
+const bioV     = {
+  rest:  { opacity: 0, y: 10, transition: { duration: 0.15 } },
+  hover: { opacity: 1, y: 0,  transition: { delay: 0.14, duration: 0.28 } },
+};
+const socialV  = {
+  rest:  { opacity: 0, y: 6, transition: { duration: 0.12 } },
+  hover: { opacity: 1, y: 0, transition: { delay: 0.22, duration: 0.28 } },
+};
+const arrowV   = {
+  rest:  { x: 0,   transition: { duration: 0.2 } },
+  hover: { x: 3,   transition: { duration: 0.2 } },
+};
+
+const orbs = [
+  { w: 380, top: "10%",  left: "2%",  dx: 28,  dy: 14,  dur: 22 },
+  { w: 260, top: "60%",  left: "6%",  dx: -20, dy: 25,  dur: 17 },
+  { w: 300, top: "8%",   left: "70%", dx: 18,  dy: -20, dur: 20 },
+  { w: 200, top: "70%",  left: "75%", dx: -16, dy: 22,  dur: 15 },
+];
+
+export default function TeamSection() {
+  const [teamMembers, setTeamMembers] = useState(FALLBACK_MEMBERS);
+
+  useEffect(() => {
+    api.getLeadership().then(d => {
+      if (d.data?.length > 0) setTeamMembers(d.data.slice(0, 4).map(m => ({ id: m._id, name: m.name, role: m.role, story: m.bio, photo: m.photo })));
+    }).catch(() => {});
+  }, []);
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-teal-50 to-emerald-50 py-24 px-6 sm:px-12 lg:px-24">
-      {/* Floating background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={`particle-${i}`}
-            className="absolute rounded-full opacity-10"
-            style={{
-              background: `linear-gradient(45deg, 
-                ${
-                  i % 4 === 0
-                    ? "#5eead4"
-                    : i % 4 === 1
-                    ? "#f59e0b"
-                    : i % 4 === 2
-                    ? "#f472b6"
-                    : "#60a5fa"
-                }, 
-                ${
-                  i % 4 === 0
-                    ? "#0d9488"
-                    : i % 4 === 1
-                    ? "#f97316"
-                    : i % 4 === 2
-                    ? "#db2777"
-                    : "#3b82f6"
-                })`,
-              width: `${Math.random() * 200 + 50}px`,
-              height: `${Math.random() * 200 + 50}px`,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              filter: "blur(40px)",
-            }}
-            animate={{
-              x: [0, (Math.random() - 0.5) * 100],
-              y: [0, (Math.random() - 0.5) * 100],
-              opacity: [0.1, 0.2, 0.1],
-            }}
-            transition={{
-              duration: Math.random() * 20 + 10,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-          />
+    <section className="relative overflow-hidden bg-[#050f0a] py-28 px-6 sm:px-12 lg:px-20 xl:px-28">
+
+      {/* Ambient orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {orbs.map((o, i) => (
+          <motion.div key={i} className="absolute rounded-full"
+            style={{ width: o.w, height: o.w, top: o.top, left: o.left,
+              background: "radial-gradient(circle,rgba(16,185,129,0.09),transparent 65%)", filter: "blur(60px)" }}
+            animate={{ x: [0, o.dx], y: [0, o.dy], opacity: [0.45, 0.85, 0.45] }}
+            transition={{ duration: o.dur, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }} />
         ))}
       </div>
 
+      {/* Grid pattern */}
+      <div className="absolute inset-0 opacity-[0.025]" style={{
+        backgroundImage: "linear-gradient(rgba(20,184,166,1) 1px,transparent 1px),linear-gradient(90deg,rgba(20,184,166,1) 1px,transparent 1px)",
+        backgroundSize: "48px 48px",
+      }} />
+
       <div className="relative max-w-7xl mx-auto">
-        {/* Headline */}
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-600">
-              Meet Our Team
-            </span>{" "}
-            <span className="text-gray-900">& Volunteers</span>
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            The passionate individuals driving change across Bangladesh through
-            innovation and dedication.
+
+        {/* Header */}
+        <motion.div className="mb-16 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6"
+          initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65 }} viewport={{ once: true }}>
+          <div>
+            <div className="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full bg-emerald-900/50 text-emerald-400 text-xs font-bold tracking-widest uppercase border border-emerald-800/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              ◈ 05 — OUR TEAM
+            </div>
+            <h2 className="text-4xl sm:text-5xl xl:text-6xl font-black tracking-tight text-white leading-[1.08]">
+              The People Behind<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">Every Change</span>
+            </h2>
+          </div>
+          <p className="text-gray-500 text-sm sm:text-base max-w-xs sm:max-w-sm leading-relaxed sm:text-right">
+            Passionate individuals driving sustainable development across Bangladesh through innovation and dedication.
           </p>
         </motion.div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {teamMembers.map((member) => (
-            <motion.div
-              key={member.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true, margin: "-50px" }}
-              className="relative group"
-            >
-              {/* Halo effect */}
-              <div
-                className={`absolute -inset-2 rounded-2xl bg-gradient-to-br ${member.color} opacity-0 group-hover:opacity-20 blur-md transition-opacity duration-500 pointer-events-none`}
-              />
+        {/* Team grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {teamMembers.map((m, i) => (
+            <motion.div key={m.id}
+              initial={{ opacity: 0, y: 36, scale: 0.97 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: i * 0.09, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true, margin: "-40px" }}>
 
-              <div className="relative h-full bg-white rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                {/* 3D Card Effect */}
-                <motion.div
-                  className="h-full flex flex-col"
-                  whileHover={{
-                    y: -10,
-                    transition: { duration: 0.3 },
-                  }}
-                >
-                  {/* Photo with parallax effect */}
+              {/* Card — variant propagation root */}
+              <motion.div
+                className="relative cursor-pointer select-none"
+                initial="rest" whileHover="hover" animate="rest"
+                variants={cardV}>
+
+                {/* Ghost index number */}
+                <span className="absolute top-3 right-4 text-[88px] font-black leading-none text-white/[0.04] select-none pointer-events-none z-10 tabular-nums">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+
+                {/* Photo + glass panel container */}
+                <div className="relative overflow-hidden rounded-2xl" style={{ aspectRatio: "3/4" }}>
+
+                  {/* Photo */}
+                  <motion.img src={m.photo} alt={m.name}
+                    className="absolute inset-0 w-full h-full object-cover object-top"
+                    variants={photoV} />
+
+                  {/* Dark gradient overlay */}
                   <motion.div
-                    className="relative h-64 overflow-hidden"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 to-transparent z-10" />
-                    <img
-                      src={member.photo}
-                      alt={member.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Role badge */}
-                    <div className="absolute bottom-4 left-4 z-20">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${member.color} text-white`}
-                      >
-                        {member.role}
-                      </span>
+                    className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"
+                    variants={overlayV} />
+
+                  {/* Teal accent line at top */}
+                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-teal-500 to-emerald-400 opacity-0 group-hover:opacity-100 z-20" />
+
+                  {/* Glass bottom panel */}
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-xl border-t border-white/[0.08] px-4 py-4 overflow-hidden z-20"
+                    variants={panelV}>
+
+                    {/* Always visible: name + role + arrow */}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-white font-black text-sm tracking-tight leading-tight">{m.name}</p>
+                        <p className="text-teal-400 text-[11px] font-semibold mt-0.5">{m.role}</p>
+                      </div>
+                      <div className="w-7 h-7 rounded-lg bg-teal-500/10 border border-teal-500/25 flex items-center justify-center flex-shrink-0 ml-2">
+                        <motion.div variants={arrowV}>
+                          <FiArrowRight className="text-teal-400 text-xs" />
+                        </motion.div>
+                      </div>
                     </div>
+
+                    {/* Bio — revealed on hover */}
+                    <motion.p className="text-gray-400 text-[11px] leading-relaxed mt-4" variants={bioV}>
+                      {m.story}
+                    </motion.p>
+
                   </motion.div>
-
-                  {/* Content */}
-                  <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {member.name}
-                    </h3>
-
-                    {/* Quote with animated underline */}
-                    <div className="relative mb-4">
-                      <p className="text-gray-600 italic">"{member.quote}"</p>
-                      <motion.div
-                        className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r ${member.color}`}
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "100%" }}
-                        transition={{ duration: 1, delay: 0.3 }}
-                        viewport={{ once: true }}
-                      />
-                    </div>
-
-                    {/* Story (hidden until hover) */}
-                    <motion.div
-                      className="overflow-hidden"
-                      initial={{ height: 0, opacity: 0 }}
-                      whileHover={{ height: "auto", opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <p className="text-sm text-gray-500 mb-4">
-                        {member.story}
-                      </p>
-                    </motion.div>
-
-                    {/* Social links */}
-                    <div className="flex gap-3 mt-auto pt-4">
-                      <motion.a
-                        href="#"
-                        className="text-gray-400 hover:text-blue-500 transition-colors"
-                        whileHover={{ y: -2 }}
-                      >
-                        <FiLinkedin />
-                      </motion.a>
-                      <motion.a
-                        href="#"
-                        className="text-gray-400 hover:text-sky-400 transition-colors"
-                        whileHover={{ y: -2 }}
-                      >
-                        <FiTwitter />
-                      </motion.a>
-                      <motion.a
-                        href="#"
-                        className="text-gray-400 hover:text-gray-700 transition-colors"
-                        whileHover={{ y: -2 }}
-                      >
-                        <FiGithub />
-                      </motion.a>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
+                </div>
+              </motion.div>
             </motion.div>
           ))}
         </div>
 
-        {/* Volunteer CTA */}
+        {/* CTA strip */}
         <motion.div
-          className="mt-20 text-center"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <div className="max-w-2xl mx-auto relative">
-            {/* Floating elements around CTA */}
-            <motion.div
-              className="absolute -top-8 -left-8 w-16 h-16 rounded-full bg-teal-400/20"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.6, 0.9, 0.6],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-              }}
-            />
-            <motion.div
-              className="absolute -bottom-6 -right-6 w-20 h-20 rounded-full bg-emerald-400/20"
-              animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.4, 0.7, 0.4],
-              }}
-              transition={{
-                duration: 5,
-                repeat: Infinity,
-                delay: 1,
-              }}
-            />
+          className="mt-20 border-t border-teal-950/60 pt-14 flex flex-col md:flex-row items-center justify-between gap-8"
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, delay: 0.15 }} viewport={{ once: true }}>
 
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
               Ready to make a difference?
             </h3>
-            <p className="text-gray-600 mb-8">
-              Join our team of passionate volunteers and contribute your skills
-              to meaningful projects.
+            <p className="text-gray-600 text-sm mt-2 max-w-md">
+              Join our team of passionate volunteers and contribute your skills to meaningful, lasting change.
             </p>
+          </div>
 
-            <motion.div
-              className="flex flex-col sm:flex-row justify-center gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              viewport={{ once: true }}
-            >
-              <motion.a
-                href="#volunteer"
-                className="px-8 py-4 bg-gradient-to-r from-teal-500 to-emerald-600 rounded-xl text-white font-medium shadow-lg hover:shadow-xl transition-all group relative overflow-hidden flex items-center justify-center"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span className="relative z-10 flex items-center">
-                  <span className="mr-3 text-xl">✋</span>
-                  Join as Volunteer
-                  <FiArrowRight className="ml-3 transition-transform group-hover:translate-x-1" />
-                </span>
-                <motion.span
-                  className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  initial={{ opacity: 0 }}
-                />
-              </motion.a>
-
-              <motion.a
-                href="#open-positions"
-                className="px-8 py-4 bg-white/90 backdrop-blur-sm border-2 border-emerald-500 text-emerald-600 font-medium rounded-xl shadow-lg hover:shadow-xl transition-all"
-                whileHover={{
-                  scale: 1.05,
-                  backgroundColor: "rgba(5, 150, 105, 0.1)",
-                }}
-                whileTap={{ scale: 0.98 }}
-              >
-                View Open Positions
-              </motion.a>
-            </motion.div>
+          <div className="flex flex-wrap gap-3 flex-shrink-0">
+            <Link to="/contact">
+              <motion.div
+                className="relative overflow-hidden inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-teal-900/40 cursor-pointer"
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+                <span>✋</span> Join as Volunteer
+                <FiArrowRight className="text-xs" />
+              </motion.div>
+            </Link>
+            <Link to="/team">
+              <motion.div
+                className="inline-flex items-center gap-2 px-6 py-3 border border-teal-900/60 bg-teal-950/30 rounded-xl text-teal-400 text-sm font-bold hover:bg-teal-950/50 hover:border-teal-800/60 transition-colors"
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+                Meet Full Team
+                <FiArrowRight className="text-xs" />
+              </motion.div>
+            </Link>
           </div>
         </motion.div>
       </div>
     </section>
   );
-};
-
-export default TeamSection;
+}

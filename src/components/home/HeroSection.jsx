@@ -1,557 +1,249 @@
-import {
-  motion,
-  useAnimation,
-  useMotionValue,
-  useTransform,
-} from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, useAnimation, useMotionValue, useTransform } from "framer-motion";
+import { useEffect, useState, useMemo } from "react";
 import bd from "../../assets/bd.svg";
 import backgroundPattern from "../../assets/background-pattern.jpg";
+import * as api from "../../services/api.js";
+import { Link } from "react-router-dom";
+
+const pillars = [
+  { icon: "📚", label: "Education" },
+  { icon: "🏥", label: "Healthcare" },
+  { icon: "🌾", label: "Agriculture" },
+  { icon: "💧", label: "Clean Water" },
+  { icon: "🤝", label: "Community" },
+];
+
+const FALLBACK_STATS = [
+  { value: "12K+", label: "Children Helped" },
+  { value: "117", label: "Villages Reached" },
+  { value: "10Y+", label: "Years of Impact" },
+];
+
+const container = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } },
+};
+const item = {
+  hidden: { y: 24, opacity: 0, filter: "blur(4px)" },
+  visible: { y: 0, opacity: 1, filter: "blur(0px)", transition: { type: "spring", stiffness: 70, damping: 14 } },
+};
 
 const HeroSection = () => {
   const controls = useAnimation();
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isMapHovered, setIsMapHovered] = useState(false);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  // 3D effect values
-  const rotateX = useTransform(y, [-200, 200], [20, -20]);
-  const rotateY = useTransform(x, [-200, 200], [-20, 20]);
-
-  // Pillars
-  const foundationPillars = [
-    { icon: "📚", label: "Education" },
-    { icon: "🏥", label: "Healthcare" },
-    { icon: "🌾", label: "Agriculture" },
-    { icon: "💧", label: "Clean Water" },
-    { icon: "🤝", label: "Community" },
-  ];
+  const [mapHovered, setMapHovered] = useState(false);
+  const [stats, setStats] = useState(FALLBACK_STATS);
 
   useEffect(() => {
-    const sequence = async () => {
-      await controls.start("visible");
-      setIsLoaded(true);
-    };
-    sequence();
-  }, [controls]);
+    api.getStats().then(d => {
+      if (d.data?.length > 0) setStats(d.data.map(s => ({ value: s.value, label: s.label })).slice(0, 3));
+    }).catch(() => {});
+  }, []);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotX = useTransform(my, [-200, 200], [15, -15]);
+  const rotY = useTransform(mx, [-200, 200], [-15, 15]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
-      },
-    },
-  };
+  const particles = useMemo(() =>
+    Array.from({ length: 14 }, (_, i) => ({
+      id: i,
+      w: Math.random() * 8 + 4,
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      dy: (Math.random() - 0.5) * 70,
+      dx: (Math.random() - 0.5) * 70,
+      dur: Math.random() * 10 + 8,
+    })), []);
 
-  const itemVariants = {
-    hidden: {
-      y: 30,
-      opacity: 0,
-      filter: "blur(4px)",
-    },
-    visible: {
-      y: 0,
-      opacity: 1,
-      filter: "blur(0px)",
-      transition: {
-        type: "spring",
-        stiffness: 60,
-        damping: 12,
-      },
-    },
-  };
-
-  const pillarVariants = {
-    hover: {
-      y: -10,
-      scale: 1.1,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 10,
-      },
-    },
-  };
+  useEffect(() => { controls.start("visible"); }, [controls]);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-teal-50 to-emerald-50">
-      {/* Background image and overlay */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-        <img
-          src={backgroundPattern}
-          alt="Background pattern"
-          className="w-full h-full object-cover opacity-10"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-50/80 to-emerald-50/80" />
+    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-slate-50 via-teal-50/40 to-emerald-50">
+
+      {/* Background image */}
+      <div className="absolute inset-0 z-0">
+        <img src={backgroundPattern} alt="" className="w-full h-full object-cover opacity-[0.06]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50/90 via-teal-50/60 to-emerald-50/90" />
       </div>
 
-      {/* Floating particles and organic shapes */}
-      <motion.div
-        className="absolute top-0 left-0 w-full h-full overflow-hidden z-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-      >
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={`particle-${i}`}
-            className="absolute rounded-full bg-teal-300/20"
-            style={{
-              width: Math.random() * 10 + 5,
-              height: Math.random() * 10 + 5,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, (Math.random() - 0.5) * 100],
-              x: [0, (Math.random() - 0.5) * 100],
-              opacity: [0.2, 0.5, 0.2],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-          />
+      {/* Dot grid */}
+      <div className="absolute inset-0 z-0 opacity-[0.35]" style={{
+        backgroundImage: "radial-gradient(circle, #14b8a6 1px, transparent 1px)",
+        backgroundSize: "32px 32px",
+      }} />
+
+      {/* Orbs + particles */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <motion.div className="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full bg-teal-300/20"
+          animate={{ scale: [1, 1.12, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }} />
+        <motion.div className="absolute -bottom-24 -right-24 w-[360px] h-[360px] rounded-full bg-emerald-300/20"
+          animate={{ scale: [1, 1.18, 1], opacity: [0.25, 0.4, 0.25] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 2 }} />
+        {particles.map((p) => (
+          <motion.div key={p.id} className="absolute rounded-full bg-teal-400/30"
+            style={{ width: p.w, height: p.w, top: p.top, left: p.left }}
+            animate={{ y: [0, p.dy], x: [0, p.dx], opacity: [0.15, 0.5, 0.15] }}
+            transition={{ duration: p.dur, repeat: Infinity, repeatType: "reverse" }} />
         ))}
-        <motion.div
-          className="absolute top-1/4 -left-20 w-96 h-96 rounded-full bg-teal-200/40"
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.4, 0.6, 0.4],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute bottom-1/3 -right-20 w-80 h-80 rounded-full bg-emerald-300/30"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2,
-          }}
-        />
-      </motion.div>
+      </div>
 
-      {/* Mobile layout */}
-      <div className="lg:hidden relative h-full flex flex-col">
-        {/* Map */}
-        <div className="h-1/3 min-h-[250px] flex items-center justify-center pt-8 px-4">
-          <motion.div
-            className="w-full h-full max-w-xs"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{
-              scale: 1,
-              opacity: 1,
-              transition: { duration: 1.5, ease: "easeOut" },
-            }}
-          >
-            <motion.img
-              src={bd}
-              alt="Bangladesh Map"
-              className="w-full h-full object-contain"
-              style={{
-                filter: `
-                  drop-shadow(0 10px 20px rgba(5, 150, 105, 0.3))
-                  brightness(1.1)
-                  contrast(1.2)
-                `,
-              }}
-            />
-          </motion.div>
+      {/* ── Mobile ── */}
+      <div className="lg:hidden relative z-10 min-h-screen flex flex-col pt-24 pb-12">
+        <div className="flex justify-center px-8 mb-6">
+          <motion.img src={bd} alt="Bangladesh" className="h-48 w-auto object-contain"
+            initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            style={{ filter: "drop-shadow(0 12px 28px rgba(5,150,105,0.35)) brightness(1.1) contrast(1.15)" }} />
         </div>
 
-        {/* Content for mobile */}
-        <motion.div
-          className="flex-1 flex flex-col justify-center px-6 pb-12"
-          initial="hidden"
-          animate={controls}
-          variants={containerVariants}
-        >
-          {/* Logo */}
-          <motion.div className="mb-4 self-start" variants={itemVariants}>
-            <motion.div
-              className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border-2 border-white/30 shadow-xl flex items-center justify-center"
-              animate={{
-                boxShadow: [
-                  "0 10px 25px -5px rgba(16, 185, 129, 0.2)",
-                  "0 15px 30px -5px rgba(16, 185, 129, 0.3)",
-                  "0 10px 25px -5px rgba(16, 185, 129, 0.2)",
-                ],
-                transition: {
-                  duration: 8,
-                  repeat: Infinity,
-                },
-              }}
-            >
-              <motion.span className="text-3xl">🌱</motion.span>
-            </motion.div>
+        <motion.div className="flex-1 px-6" initial="hidden" animate={controls} variants={container}>
+          <motion.div variants={item} className="mb-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold tracking-widest uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Since 2013
+            </span>
           </motion.div>
 
-          {/* Headline */}
-          <motion.h1
-            className="text-3xl sm:text-4xl font-bold leading-tight mb-3"
-            variants={itemVariants}
-          >
-            <motion.span
-              className="bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-emerald-600"
-              animate={{
-                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                transition: {
-                  duration: 10,
-                  repeat: Infinity,
-                },
-              }}
-              style={{
-                backgroundSize: "200% 200%",
-              }}
-            >
-              Alor Foundation
-            </motion.span>
+          <motion.h1 variants={item} className="text-[2.4rem] sm:text-5xl font-black leading-[1.08] tracking-tight mb-4">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-500">
+              Alor<br />Foundation
+            </span>
             <br />
-            <span className="text-gray-800 text-2xl sm:text-3xl">
+            <span className="text-gray-900 text-3xl sm:text-4xl font-bold">
               Empowering <span className="text-emerald-600">Bangladesh</span>
             </span>
           </motion.h1>
 
-          {/* Subtext */}
-          <motion.p
-            className="text-base sm:text-lg text-gray-700 mb-6 leading-relaxed"
-            variants={itemVariants}
-          >
-            Transforming lives through{" "}
-            <span className="font-medium text-teal-600">
-              sustainable development
-            </span>
-            , education, and healthcare initiatives across the nation.
+          <motion.p variants={item} className="text-gray-600 text-base leading-relaxed mb-6 max-w-sm">
+            Transforming lives through <span className="font-semibold text-teal-600">sustainable development</span>, education, and healthcare.
           </motion.p>
 
-          {/* Pillars */}
-          <motion.div
-            className="flex gap-3 mb-6 overflow-x-auto pb-2 -mx-6 px-6"
-            variants={itemVariants}
-          >
-            {foundationPillars.map((pillar, index) => (
-              <motion.div
-                key={index}
-                className="px-4 py-2 rounded-xl bg-white/80 backdrop-blur-sm border border-white/30 shadow-lg flex items-center gap-2 flex-shrink-0"
-                variants={pillarVariants}
-                whileHover="hover"
-                animate={{
-                  boxShadow: [
-                    "0 4px 15px -5px rgba(5, 150, 105, 0.2)",
-                    "0 8px 20px -5px rgba(5, 150, 105, 0.3)",
-                    "0 4px 15px -5px rgba(5, 150, 105, 0.2)",
-                  ],
-                  transition: {
-                    duration: 4 + index,
-                    repeat: Infinity,
-                  },
-                }}
-              >
-                <span className="text-2xl">{pillar.icon}</span>
-                <span className="font-medium text-teal-800">
-                  {pillar.label}
-                </span>
+          <motion.div variants={item} className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-6 px-6 scrollbar-hide">
+            {pillars.map((p, i) => (
+              <motion.div key={i} whileHover={{ y: -4, scale: 1.05 }}
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-teal-100 shadow-sm text-sm font-semibold text-teal-800">
+                <span>{p.icon}</span><span>{p.label}</span>
               </motion.div>
             ))}
           </motion.div>
 
-          {/* CTA Buttons */}
-          <motion.div className="flex flex-col gap-3" variants={itemVariants}>
-            <motion.a
-              href="#mission"
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-medium text-base shadow-xl hover:shadow-2xl transition-all relative overflow-hidden text-center"
-              whileHover={{
-                scale: 1.05,
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="relative z-10">Our Mission & Impact</span>
-              <motion.span className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-700 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+          <motion.div variants={item} className="flex flex-col gap-3 mb-8">
+            <motion.a href="#about" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              className="relative overflow-hidden px-6 py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-bold text-center shadow-lg shadow-teal-500/30 btn-shimmer">
+              Our Mission & Impact
             </motion.a>
-            <motion.a
-              href="#donate"
-              className="px-6 py-3 rounded-xl bg-white/90 backdrop-blur-sm border-2 border-emerald-500 text-emerald-600 font-medium text-base shadow-lg hover:shadow-xl transition-all text-center"
-              whileHover={{
-                scale: 1.05,
-                backgroundColor: "rgba(5, 150, 105, 0.1)",
-                boxShadow: "0 10px 25px -5px rgba(5, 150, 105, 0.3)",
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Donate Now
-            </motion.a>
+            <Link to="/contact">
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                className="px-6 py-3.5 rounded-xl border-2 border-emerald-500 text-emerald-700 font-bold text-center bg-white/60 cursor-pointer">
+                Donate Now
+              </motion.div>
+            </Link>
+          </motion.div>
+
+          {/* Stats strip */}
+          <motion.div variants={item} className="grid grid-cols-3 gap-2">
+            {stats.map((s) => (
+              <div key={s.label} className="bg-white/70 border border-emerald-100 rounded-xl p-3 text-center shadow-sm">
+                <div className="text-xl font-black text-emerald-700">{s.value}</div>
+                <div className="text-[10px] text-gray-500 font-semibold leading-tight mt-0.5">{s.label}</div>
+              </div>
+            ))}
           </motion.div>
         </motion.div>
       </div>
 
-      {/* Desktop layout */}
-      <div className="hidden lg:flex h-full w-full">
-        {/* Hero content on the left */}
-        <motion.div
-          className="relative flex-1 flex flex-col justify-center pr-8 xl:pr-16 pl-6"
-          initial="hidden"
-          animate={controls}
-          variants={containerVariants}
-        >
-          {/* Logo */}
-          <motion.div className="mb-6 self-start" variants={itemVariants}>
-            <motion.div
-              className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md border-2 border-white/30 shadow-xl flex items-center justify-center"
-              animate={{
-                boxShadow: [
-                  "0 10px 25px -5px rgba(16, 185, 129, 0.2)",
-                  "0 15px 30px -5px rgba(16, 185, 129, 0.3)",
-                  "0 10px 25px -5px rgba(16, 185, 129, 0.2)",
-                ],
-                transition: {
-                  duration: 8,
-                  repeat: Infinity,
-                },
-              }}
-            >
-              <motion.span className="text-4xl">🌱</motion.span>
-            </motion.div>
+      {/* ── Desktop ── */}
+      <div className="hidden lg:flex min-h-screen w-full z-10 relative">
+        {/* Left */}
+        <motion.div className="flex-1 flex flex-col justify-center pl-12 xl:pl-20 pr-8"
+          initial="hidden" animate={controls} variants={container}>
+          <motion.div variants={item} className="mb-4">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold tracking-widest uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Since 2013 · Bangladesh
+            </span>
           </motion.div>
 
-          {/* Headline */}
-          <motion.h1
-            className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight max-w-3xl mb-4"
-            variants={itemVariants}
-          >
-            <motion.span
-              className="bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-emerald-600"
-              animate={{
-                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                transition: {
-                  duration: 10,
-                  repeat: Infinity,
-                },
-              }}
-              style={{
-                backgroundSize: "200% 200%",
-              }}
-            >
+          <motion.h1 variants={item} className="text-6xl xl:text-7xl font-black leading-[1.0] tracking-tight mb-5 max-w-2xl">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-500">
               Alor Foundation
-            </motion.span>
+            </span>
             <br />
-            <span className="text-gray-800 text-3xl sm:text-4xl md:text-5xl">
+            <span className="text-gray-900 text-4xl xl:text-5xl font-bold">
               Empowering <span className="text-emerald-600">Bangladesh</span>
             </span>
           </motion.h1>
 
-          {/* Subtext */}
-          <motion.p
-            className="text-lg sm:text-xl text-gray-700 max-w-3xl mb-8 leading-relaxed"
-            variants={itemVariants}
-          >
-            Transforming lives through{" "}
-            <span className="font-medium text-teal-600">
-              sustainable development
-            </span>
-            , education, and healthcare initiatives across the nation.
+          <motion.p variants={item} className="text-gray-600 text-lg xl:text-xl leading-relaxed mb-7 max-w-xl">
+            Transforming lives through <span className="font-semibold text-teal-600">sustainable development</span>,
+            education, and healthcare initiatives across the nation.
           </motion.p>
 
-          {/* Pillars */}
-          <motion.div
-            className="flex flex-wrap gap-3 mb-8"
-            variants={itemVariants}
-          >
-            {foundationPillars.map((pillar, index) => (
-              <motion.div
-                key={index}
-                className="px-5 py-2 rounded-xl bg-white/80 backdrop-blur-sm border border-white/30 shadow-lg flex items-center gap-2"
-                variants={pillarVariants}
-                whileHover="hover"
-                animate={{
-                  boxShadow: [
-                    "0 4px 15px -5px rgba(5, 150, 105, 0.2)",
-                    "0 8px 20px -5px rgba(5, 150, 105, 0.3)",
-                    "0 4px 15px -5px rgba(5, 150, 105, 0.2)",
-                  ],
-                  transition: {
-                    duration: 4 + index,
-                    repeat: Infinity,
-                  },
-                }}
-              >
-                <span className="text-2xl">{pillar.icon}</span>
-                <span className="font-medium text-teal-800">
-                  {pillar.label}
-                </span>
+          <motion.div variants={item} className="flex flex-wrap gap-2 mb-8">
+            {pillars.map((p, i) => (
+              <motion.div key={i} whileHover={{ y: -5, scale: 1.07 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 border border-teal-100 shadow-sm font-semibold text-teal-800 text-sm cursor-default">
+                <span className="text-lg">{p.icon}</span><span>{p.label}</span>
               </motion.div>
             ))}
           </motion.div>
 
-          {/* CTA Buttons */}
-          <motion.div
-            className="flex flex-col sm:flex-row gap-4"
-            variants={itemVariants}
-          >
-            <motion.a
-              href="#mission"
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-medium text-base shadow-xl hover:shadow-2xl transition-all relative overflow-hidden"
-              whileHover={{
-                scale: 1.05,
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="relative z-10">Our Mission & Impact</span>
-              <motion.span className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-700 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+          <motion.div variants={item} className="flex gap-4 mb-10">
+            <motion.a href="#about" whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+              className="relative overflow-hidden px-7 py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-bold shadow-lg shadow-teal-500/30 btn-shimmer">
+              Our Mission & Impact
             </motion.a>
-            <motion.a
-              href="#donate"
-              className="px-6 py-3 rounded-xl bg-white/90 backdrop-blur-sm border-2 border-emerald-500 text-emerald-600 font-medium text-base shadow-lg hover:shadow-xl transition-all"
-              whileHover={{
-                scale: 1.05,
-                backgroundColor: "rgba(5, 150, 105, 0.1)",
-                boxShadow: "0 10px 25px -5px rgba(5, 150, 105, 0.3)",
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Donate Now
-            </motion.a>
+            <Link to="/contact">
+              <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                className="px-7 py-3.5 rounded-xl border-2 border-emerald-500 text-emerald-700 font-bold bg-white/60 hover:bg-emerald-50 transition-colors cursor-pointer">
+                Donate Now
+              </motion.div>
+            </Link>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div variants={item} className="flex gap-5">
+            {stats.map((s, i) => (
+              <div key={i} className="flex flex-col">
+                <span className="text-3xl font-black text-emerald-700 leading-none">{s.value}</span>
+                <span className="text-xs text-gray-500 font-semibold tracking-wide mt-1">{s.label}</span>
+              </div>
+            ))}
           </motion.div>
         </motion.div>
 
-        {/* Centered Bangladesh Map on the right */}
-        <div className="relative flex-1 flex items-center justify-center">
-          <motion.div
-            className="p-10"
-            style={{
-              transform: "translate(-50%, -50%)",
-              perspective: 1200,
-              transformStyle: "preserve-3d",
-              left: "50%",
-              top: "50%",
-            }}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{
-              scale: 1,
-              opacity: 1,
-              transition: { duration: 1.5, ease: "easeOut" },
-            }}
-            onHoverStart={() => setIsMapHovered(true)}
-            onHoverEnd={() => setIsMapHovered(false)}
+        {/* Right — Map */}
+        <div className="flex-1 flex items-center justify-center">
+          <motion.div className="relative w-[440px] h-[440px] xl:w-[500px] xl:h-[500px]"
+            initial={{ scale: 0.88, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.4, ease: "easeOut" }}
+            onHoverStart={() => setMapHovered(true)}
+            onHoverEnd={() => { setMapHovered(false); mx.set(0); my.set(0); }}
             onPointerMove={(e) => {
-              if (isMapHovered) {
-                const bounds = e.currentTarget.getBoundingClientRect();
-                x.set(e.clientX - bounds.left - bounds.width / 2);
-                y.set(e.clientY - bounds.top - bounds.height / 2);
-              }
-            }}
-          >
-            {/* Holographic glow base */}
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              style={{
-                background: isMapHovered
-                  ? "radial-gradient(circle at center, rgba(16, 185, 129, 0.3) 0%, transparent 70%)"
-                  : "radial-gradient(circle at center, rgba(16, 185, 129, 0.1) 0%, transparent 70%)",
-                filter: "blur(20px)",
-                transform: "translateZ(-40px)",
-                opacity: isMapHovered ? 0.8 : 0.4,
-                transition: "all 0.3s ease-out",
-              }}
-              animate={{
-                backgroundSize: ["100% 100%", "150% 150%", "100% 100%"],
-                transition: {
-                  duration: 8,
-                  repeat: Infinity,
-                },
-              }}
-            />
+              if (!mapHovered) return;
+              const b = e.currentTarget.getBoundingClientRect();
+              mx.set(e.clientX - b.left - b.width / 2);
+              my.set(e.clientY - b.top - b.height / 2);
+            }}>
+            {/* Glow rings */}
+            <motion.div className="absolute inset-0 rounded-full"
+              style={{ background: "radial-gradient(circle,rgba(16,185,129,0.22) 0%,transparent 68%)", filter: "blur(28px)" }}
+              animate={{ opacity: mapHovered ? 0.9 : 0.45, scale: mapHovered ? 1.1 : 1 }}
+              transition={{ duration: 0.4 }} />
+            <motion.div className="absolute inset-[-10%] rounded-full border border-teal-300/20"
+              animate={{ rotate: 360 }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} />
+            <motion.div className="absolute inset-[-20%] rounded-full border border-emerald-200/15"
+              animate={{ rotate: -360 }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }} />
 
-            {/* Depth layer with grid pattern */}
-            <motion.div
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={{
-                transform: "translateZ(-30px) scale(0.95)",
-                backgroundImage: `
-                  linear-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(16, 185, 129, 0.1) 1px, transparent 1px)
-                `,
-                backgroundSize: "20px 20px",
-                filter: "blur(1px)",
-              }}
-            />
-
-            {/* Main map */}
-            <motion.div
-              className="relative w-full h-full"
-              style={{
-                transformStyle: "preserve-3d",
-                rotateX: isMapHovered ? rotateX : 0,
-                rotateY: isMapHovered ? rotateY : 0,
-              }}
-              animate={{
-                y: [0, -10, 0],
-                transition: {
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                },
-              }}
-            >
-              <motion.img
-                src={bd}
-                alt="Bangladesh Map"
-                className="w-full h-full object-contain"
-                style={{
-                  imageRendering: "crisp-edges",
-                  filter: `
-                    drop-shadow(0 20px 30px rgba(5, 150, 105, 0.4))
-                    brightness(1.1)
-                    contrast(1.2)
-                  `,
-                  transform: `translateZ(${isMapHovered ? 60 : 40}px)`,
-                  clipPath: "inset(0 0 0 0 round 10%)",
-                  mixBlendMode: isMapHovered ? "hard-light" : "normal",
-                }}
-              />
-
-              {/* ... your map hover particles/lines can go here ... */}
+            <motion.div style={{ rotateX: mapHovered ? rotX : 0, rotateY: mapHovered ? rotY : 0, perspective: 1200 }}
+              animate={{ y: [0, -14, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
+              <img src={bd} alt="Bangladesh Map" draggable={false}
+                className="w-full h-full object-contain select-none"
+                style={{ filter: "drop-shadow(0 24px 48px rgba(5,150,105,0.5)) brightness(1.1) contrast(1.15)" }} />
             </motion.div>
           </motion.div>
         </div>
       </div>
-
-      {/* Additional floating particles */}
-      {[...Array(100)].map((_, i) => (
-        <motion.div
-          key={`floating-particle-${i}`}
-          className="absolute rounded-full bg-teal-400/20 z-0"
-          style={{
-            width: Math.random() * 8 + 3,
-            height: Math.random() * 8 + 3,
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, (Math.random() - 0.5) * 80],
-            x: [0, (Math.random() - 0.5) * 80],
-            opacity: [0.2, 0.8, 0.2],
-          }}
-          transition={{
-            duration: Math.random() * 15 + 10,
-            repeat: Infinity,
-            repeatType: "reverse",
-          }}
-        />
-      ))}
     </div>
   );
 };
